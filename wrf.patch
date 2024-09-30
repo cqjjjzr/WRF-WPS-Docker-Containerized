@@ -1,0 +1,13 @@
+diff --git a/configure b/configure
+index 5e2bedb1..9dc2633b 100755
+--- a/configure
++++ b/configure
+@@ -309,7 +309,7 @@ if [ -n "$NETCDF4" ] ; then
+       echo ' '
+     fi
+     nx_config="`$NETCDF/bin/nf-config --flibs`"
+-    NETCDF4_DEP_LIB="$NETCDF4_DEP_LIB $nx_config"
++    NETCDF4_DEP_LIB="$NETCDF4_DEP_LIB $nx_config $LDFLAGS $LIBS"
+   fi
+ fi
+ 

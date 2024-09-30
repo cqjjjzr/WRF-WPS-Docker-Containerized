@@ -1,0 +1,17 @@
+diff --git a/CMakeFilters.cmake b/CMakeFilters.cmake
+index 52d65e59e4..e91344079d 100644
+--- a/CMakeFilters.cmake
++++ b/CMakeFilters.cmake
+@@ -158,9 +158,9 @@ if (HDF5_ENABLE_SZIP_SUPPORT)
+     endif ()
+     set(H5_SZIP_FOUND ${SZIP_FOUND})
+     if (H5_SZIP_FOUND)
+-      set (H5_SZIP_INCLUDE_DIR_GEN ${SZIP_INCLUDE_DIR})
+-      set (H5_SZIP_INCLUDE_DIRS ${H5_SZIP_INCLUDE_DIRS} ${SZIP_INCLUDE_DIR})
+-      set (LINK_COMP_LIBS ${LINK_COMP_LIBS} ${SZIP_LIBRARIES})
++      set (H5_SZIP_INCLUDE_DIR_GEN ${SZIP_INCLUDE_DIR} ${szip_INCLUDE_DIR})
++      set (H5_SZIP_INCLUDE_DIRS ${H5_SZIP_INCLUDE_DIRS} ${SZIP_INCLUDE_DIR} ${szip_INCLUDE_DIR})
++      set (LINK_COMP_LIBS ${LINK_COMP_LIBS} ${SZIP_LIBRARIES} ${szip_LIBRARIES})
+     endif ()
+   else ()
+     if (HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "GIT" OR HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "TGZ")

@@ -1,0 +1,41 @@
+diff --git a/arch/Config.pl b/arch/Config.pl
+index 2faef0a..2d4cc89 100644
+--- a/arch/Config.pl
++++ b/arch/Config.pl
+@@ -79,8 +79,8 @@ if ($sw_grib2_path eq "")
+       printf "Found Jasper environment variables for GRIB2 support...\n";
+       printf("  \$JASPERLIB = %s\n",$ENV{JASPERLIB});
+       printf("  \$JASPERINC = %s\n",$ENV{JASPERINC});
+-      $sw_jasperlib_path = "-L$ENV{JASPERLIB} -ljasper -lpng -lz"; 
+-      $sw_jasperinc_path = "-I$ENV{JASPERINC}"; 
++      $sw_jasperlib_path = "-L$ENV{JASPERLIB} -L$ENV{JPEG}/lib -L$ENV{PNG}/lib -ljasper -ljpeg -lpng -lz";
++      $sw_jasperinc_path = "-I$ENV{JASPERINC} -I$ENV{PNG}/include";
+    }
+    else
+    {
+diff --git a/arch/preamble b/arch/preamble
+index e5bf980..cdff9fa 100644
+--- a/arch/preamble
++++ b/arch/preamble
+@@ -45,7 +45,7 @@ WRF_LIB         =       -L$(WRF_DIR)/external/io_grib1 -lio_grib1 \
+                         -L$(WRF_DIR)/external/io_grib_share -lio_grib_share \
+                         -L$(WRF_DIR)/external/io_int -lwrfio_int \
+                         -L$(WRF_DIR)/external/io_netcdf -lwrfio_nf \
+-                        -L$(NETCDF)/lib CONFIGURE_NETCDFF_LIB -lnetcdf
++                        -L$(NETCDF)/lib $(LDFLAGS2) CONFIGURE_NETCDFF_LIB -lnetcdf $(LIBS2)
+ 
+ #### Architecture specific settings ####
+ 
+diff --git a/configure b/configure
+index f87ffe5..d2944cd 100755
+--- a/configure
++++ b/configure
+@@ -431,7 +431,7 @@ EOF
+     FFLAGS=`printf "%s" "${FFLAGS}" | sed -e "s/\\$(FORMAT_FREE)/${FORMAT_FREE}/g"`
+     cp $NETCDF/include/netcdf.inc .
+     FC=`grep ^SFC configure.wps | cut -d"=" -f2-`
+-    $FC ${FFLAGS} fort_netcdf.f -o fort_netcdf -L${NETCDF}/lib $NETCDFF -lnetcdf > /dev/null 2>&1 
++    $FC ${FFLAGS} fort_netcdf.f -o fort_netcdf $LDFLAGS2 -L${NETCDF}/lib $NETCDFF -lnetcdf $LIBS2 > /dev/null 2>&1
+     if [ -f "fort_netcdf" ] ; then
+       ./fort_netcdf > /dev/null 2>&1
+       if [ $? = 0 ]; then

@@ -1,0 +1,56 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b0770dd..c5fc3b7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -449,6 +449,11 @@ ENDIF()
+ 
+ IF(NOT netCDF_LIBRARIES AND NOT netCDF_INCLUDE_DIR)
+   FIND_PACKAGE(netCDF QUIET)
++  FIND_PACKAGE(CURL REQUIRED)
++  FIND_PACKAGE(szip REQUIRED)
++  FIND_PACKAGE(ZLIB REQUIRED)
++  FIND_PACKAGE(HDF5 REQUIRED)
++  FIND_PACKAGE(LibXml2 REQUIRED)
+ ELSE()
+   SET(netCDF_FOUND TRUE)
+ ENDIF()
+diff --git a/nf03_test/CMakeLists.txt b/nf03_test/CMakeLists.txt
+index 4cdd3d1..4c7d8ed 100644
+--- a/nf03_test/CMakeLists.txt
++++ b/nf03_test/CMakeLists.txt
+@@ -1,5 +1,4 @@
+ SET(CMAKE_VERBOSE_MAKEFILE OFF)
+-SET(CMAKE_BUILD_TYPE "RelWithDebInfo")
+ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+ 
+ SET(TESTS)
+diff --git a/nf03_test4/CMakeLists.txt b/nf03_test4/CMakeLists.txt
+index 0f914f5..9d5e65f 100644
+--- a/nf03_test4/CMakeLists.txt
++++ b/nf03_test4/CMakeLists.txt
+@@ -1,5 +1,4 @@
+ SET(CMAKE_VERBOSE_MAKEFILE OFF)
+-SET(CMAKE_BUILD_TYPE "RelWithDebInfo")
+ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+ 
+ # Is the user building netCDF-4?
+diff --git a/nf_test/CMakeLists.txt b/nf_test/CMakeLists.txt
+index eecc939..9cc0860 100644
+--- a/nf_test/CMakeLists.txt
++++ b/nf_test/CMakeLists.txt
+@@ -1,5 +1,4 @@
+ SET(CMAKE_VERBOSE_MAKEFILE OFF)
+-SET(CMAKE_BUILD_TYPE "RelWithDebInfo")
+ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+ 
+ # Process these files with m4.
+diff --git a/nf_test4/CMakeLists.txt b/nf_test4/CMakeLists.txt
+index ad56024..b9615b3 100644
+--- a/nf_test4/CMakeLists.txt
++++ b/nf_test4/CMakeLists.txt
+@@ -1,5 +1,4 @@
+ SET(CMAKE_VERBOSE_MAKEFILE OFF)
+-SET(CMAKE_BUILD_TYPE "RelWithDebInfo")
+ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+ 
+ # Is the user building netCDF-4?

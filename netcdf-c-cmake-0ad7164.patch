@@ -1,0 +1,92 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 96852ed60..e7711d2e7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -16,6 +16,8 @@ project(netCDF
+   VERSION 4.9.4
+ )
+ 
++set(CMAKE_TRY_COMPILE_CONFIGURATION Release)
++
+ #####
+ # Version Info:
+ #
+diff --git a/cmake/dependencies.cmake b/cmake/dependencies.cmake
+index c21ac3b22..f196a51d8 100644
+--- a/cmake/dependencies.cmake
++++ b/cmake/dependencies.cmake
+@@ -142,6 +142,8 @@ if(USE_HDF5)
+   endif()  
+   
+   message(STATUS "Using HDF5 include dir: ${HDF5_INCLUDE_DIRS}")
++  add_library(HDF5::HDF5 ALIAS hdf5-static)
++  add_library(hdf5::hdf5_hl ALIAS hdf5_hl-static)
+   target_link_libraries(netcdf
+     PRIVATE
+     HDF5::HDF5
+@@ -193,7 +195,8 @@ if(USE_HDF5)
+   # Find out if HDF5 was built with parallel support.
+   set(HDF5_PARALLEL ${HDF5_IS_PARALLEL})
+ 
+-  set(CMAKE_REQUIRED_LIBRARIES HDF5::HDF5)
++  find_package(szip REQUIRED)
++  set(CMAKE_REQUIRED_LIBRARIES hdf5-static szip-static)
+   include(CheckSymbolExists)
+ 
+   #Check to see if HDF5 library has collective metadata APIs, (HDF5 >= 1.10.0)
+diff --git a/libdispatch/CMakeLists.txt b/libdispatch/CMakeLists.txt
+index 079d00914..e34a3d7fe 100644
+--- a/libdispatch/CMakeLists.txt
++++ b/libdispatch/CMakeLists.txt
+@@ -99,6 +99,8 @@ if(NETCDF_ENABLE_S3)
+   endif()
+ endif()
+ 
++target_link_libraries(dispatch PRIVATE CURL::libcurl)
++
+ if(NETCDF_ENABLE_TESTS)
+     BUILD_BIN_TEST(ncrandom)
+ endif()
+diff --git a/libhdf5/CMakeLists.txt b/libhdf5/CMakeLists.txt
+index 4f5d88342..1f05e4d68 100644
+--- a/libhdf5/CMakeLists.txt
++++ b/libhdf5/CMakeLists.txt
+@@ -32,7 +32,7 @@ if(STATUS_PARALLEL)
+     target_link_libraries(netcdfhdf5 PUBLIC MPI::MPI_C)
+ endif(STATUS_PARALLEL)
+ 
+-target_link_libraries(netcdfhdf5 PUBLIC HDF5::HDF5)
++target_link_libraries(netcdfhdf5 PUBLIC hdf5-static CURL::libcurl)
+ 
+ # Remember to package this file for CMake builds.
+ add_extra_dist(${libnchdf5_SOURCES} CMakeLists.txt)
+diff --git a/plugins/CMakeLists.txt b/plugins/CMakeLists.txt
+index 09ccf4b94..0c863360c 100644
+--- a/plugins/CMakeLists.txt
++++ b/plugins/CMakeLists.txt
+@@ -4,7 +4,6 @@
+ # University Corporation for Atmospheric Research/Unidata.
+ 
+ # See netcdf-c/COPYRIGHT file for more info.
+-set(CMAKE_BUILD_TYPE "")
+ 
+ if(WIN32)
+   set(PLUGINEXT "dll")
+@@ -89,7 +88,7 @@ buildplugin(h5fletcher32 "h5fletcher32")
+ buildplugin(h5deflate "h5deflate")
+ 
+ buildplugin(nczmisc "zmisc")
+-buildplugin(nczhdf5filters "zhdf5filters" netcdf)
++buildplugin(nczhdf5filters "zhdf5filters" netcdf szip-static)
+ 
+ if(NETCDF_ENABLE_BLOSC)
+   set(h5blosc_SOURCES H5Zblosc.c)
+@@ -107,7 +106,7 @@ endif()
+ # Need our version of szip if libsz available and we are not using HDF5
+ if(HAVE_SZ)
+   set(h5szip_SOURCES H5Zszip.c H5Zszip.h)
+-  buildplugin(h5szip "h5szip" ${Szip_LIBRARIES})
++  buildplugin(h5szip "h5szip" ${Szip_LIBRARIES} szip-static)
+ endif()
+ 
+ if(HAVE_LOCAL_BZ2)
