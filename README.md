@@ -40,12 +40,14 @@ Two versions of base image are provided:
 2. Make desired change to `argfile.conf`.
 3. For Podman users, execute `podman build . -f Containerfile --build-arg-file=argfile.conf --tag=wrf_wps:latest`. You can change the tag as desired. For Almalinux host, change `Containerfile` to `Containerfile_almalinux`.  
    For Docker users, execute `docker build -f Containerfile --tag=wrf_wps:latest --build-arg abcd=efgh .`. Refer to `argfile.conf` for possible `build-arg`s values as Docker does not support `build-arg-file` yet. For Almalinux host, change `Containerfile` to `Containerfile_almalinux`.
-4. Use the following commands to copy out binaries (change podman to docker if needed, and fill `<cont-id>` with the container id you get from Step 3).
+4. Use the following commands to copy out binaries (change podman to docker if needed, and fill `<cont-id>` with the container id you get from the first command).
 
 ```
+podman create wrf_wps:latest
 podman cp <cont-id>:/build/WRF ./out/WRF
 podman cp <cont-id>:/build/WPS ./out/WPS
 podman cp <cont-id>:/install_dir/mpich ./out/mpich
+podman rm <cont-id>
 ```
 
 You can now use the binaries in `./out/WRF/run` and `./out/WPS`. You may need to add `(absolute path to .)/out/mpich/lib` into `LD_LIBRARY_PATH` before running, and it is a good idea to append this to your bash/zsh/fish profile.
