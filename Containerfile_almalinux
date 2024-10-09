@@ -1,20 +1,18 @@
-FROM ubuntu:24.04 as compiler
-
+FROM almalinux:8.10
 WORKDIR /build
-ENV DEBIAN_FRONTEND=noninteractive
 
 
 # Install tools
-RUN apt update \
-    && apt install -y gcc g++ gfortran binutils libtool autoconf automake perl ninja-build curl wget python3 python3-pip pipx git cmake jq csh time
+RUN yum -y install gcc gcc-c++ gcc-gfortran binutils libtool autoconf automake perl curl wget python3 python3-pip git cmake jq tcsh time unzip which patch
+RUN wget https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip && unzip ninja-linux.zip && mv ninja /bin
 
 # Prepare source-build files
 RUN mkdir -p /install_dir/{netcdf,mpich,hdf5} /install_dir/netcdf/plugin_dir \
     && git clone https://github.com/Unidata/netcdf-c.git \
     && git clone https://github.com/Unidata/netcdf-fortran.git \
     && git clone --recursive https://github.com/pmodels/mpich.git \
-    && git clone https://github.com/wrf-model/WRF.git \
-    && git clone https://github.com/wrf-model/WPS.git \
+    && git clone --recursive https://github.com/wrf-model/WRF.git \
+    && git clone --recursive https://github.com/wrf-model/WPS.git \
     && git clone https://github.com/HDFGroup/hdf5.git \
     && mkdir /build/netcdf-fortran/build /build/netcdf-c/build /build/hdf5/build
 COPY conanfile-netcdf.txt /build/netcdf-c/conanfile.txt
@@ -25,7 +23,7 @@ COPY conanfile-hdf5.txt /build/hdf5/conanfile.txt
 
 # Prepare dependencies conan
 ENV PATH="/root/.local/bin:$PATH"
-RUN pipx install conan \
+RUN pip3 install conan \
     && conan profile detect \
     && cd /build/netcdf-c \
     && conan install . --build missing --output-folder=build -s build_type=Release \
@@ -45,7 +43,6 @@ RUN cd /build/mpich \
     && ./configure --prefix=/install_dir/mpich \
     && make -j$(nproc) \
     && make install
-
 
 
 # Build HDF5
@@ -69,8 +66,8 @@ RUN cd /build/hdf5 \
 
 
 # Build NetCDF-C
-COPY netcdf-c-cmake.patch /build/netcdf-c/netcdf-c-cmake.patch
 ARG netcdf_c_version=v4.9.3-rc1
+COPY netcdf-c-cmake.patch /build/netcdf-c/netcdf-c-cmake.patch
 RUN cd /build/netcdf-c \
     && git checkout $netcdf_c_version \
     && git apply netcdf-c-cmake.patch \
@@ -126,30 +123,19 @@ RUN cd /build/WRF \
 # Build WPS
 ARG wps_version=v4.6.0
 ARG wps_config=3
-COPY wps.patch /build/WPS/wps.patch
+COPY wps-almalinux.patch /build/WPS/wps.patch
 RUN cd /build/WPS \
     && source /build/WPS/conanautotoolsdeps.sh \
     && export JASPER=$(cat conaninfo.json | jq -r '.graph.nodes | [.[] | select(.name == "jasper")] | first | .package_folder') \
     && export PNG=$(cat conaninfo.json | jq -r '.graph.nodes | [.[] | select(.name == "libpng")] | first | .package_folder') \
+    && export ZLIB=$(cat conaninfo.json | jq -r '.graph.nodes | [.[] | select(.name == "zlib")] | first | .package_folder') \
     && export JPEG=$(cat conaninfo.json | jq -r '.graph.nodes | [.[] | select(.name == "libjpeg")] | first | .package_folder') \
     && export HDF5=/install_dir/hdf5 \
     && export NETCDF=/install_dir/netcdf JASPERLIB="$JASPER/lib" JASPERINC="$JASPER/include" \
-    && export LDFLAGS2="-L$HDF5/lib $LDFLAGS" LIBS2="-lhdf5_hl -lhdf5_fortran -lhdf5_tools -lhdf5 $LIBS" \
+    && export LDFLAGS2="-L$HDF5/lib -L$ZLIB/lib $LDFLAGS" LIBS2="-lhdf5_hl -lhdf5_fortran -lhdf5_tools -lhdf5 -lz $LIBS" \
     && git checkout $wps_version \
     && git apply wps.patch \
     && echo $wps_config | ./configure \
     && ./compile \
     && source /build/WPS/deactivate_conanautotoolsdeps.sh \
     && test -f ungrib/ungrib.exe
-
-
-# Runner
-FROM ubuntu:24.04 as runner
-
-RUN mkdir /build && mkdir /install_dir && apt update && apt install -y gcc g++ gfortran
-COPY --from=compiler /build/WRF /build/WRF
-COPY --from=compiler /build/WPS /build/WPS
-COPY --from=compiler /install_dir /install_dir
-
-WORKDIR /build/WPS
-CMD ["/bin/bash"]
